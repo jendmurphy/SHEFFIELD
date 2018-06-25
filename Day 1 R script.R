@@ -62,4 +62,41 @@ ggplot(data=diamonds,
        aes(x=price, colour=color))+
   geom_density()
 
+#  SCATTERPLOT
+ggplot(data = mpg,
+       aes(x = displ, y = hwy))+
+  geom_point()
+
+#  The pokemon dataset!  Download from the internet
+pokemon <- read.csv("https://bit.ly/2lwUJRB")
+
+#  Make the pokemon dataset a tidy object
+pokemon <- tbl_df(pokemon)
+
+
+
+#  POKEMON 
+#  Types of pokemon bar chart
+ggplot(data = pokemon,
+       aes(x = Type))+
+  geom_bar()
+
+#  HP amongst Pokemon density plot. colour by type
+ggplot(data = pokemon,
+       aes(x = HP, colour = Type))+
+  geom_density()
+
+#Attack and defense scatterplot
+ggplot(data = pokemon,
+       aes(x = Attack, y = Defense))+
+  geom_point()
+
+#  HP by type, amongst pokemon barchart
+ggplot(data = pokemon,
+       aes(x = HP, colour = Type))+
+  geom_density()
+
+
+
+
 
