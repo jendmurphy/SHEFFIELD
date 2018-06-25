@@ -293,4 +293,53 @@ gapminder %>% group_by(continent, year) %>%
   geom_label_repel()
 
 
+#  MIDWEST DATA TASK
+data <- midwest
+
+install.packages("ggthemes")
+library(ggthemes)
+
+ggplot(data, aes(x = percollege, y= log(popdensity)))+
+  geom_point(aes(size = poptotal, colour = state))+
+  labs(x="Percentage of population who attended college",
+       y= "Log of population density",
+       title = "Population density by percentage college attendance in US MidWest counties",
+       subtitle = "All Counties represented, coloured by State")+
+  theme_economist_white()+
+  ggsave("saved_graph.pdf")
+
+data <- data%>%
+  group_by(state) %>% 
+  mutate(popweight = poptotal/sum(poptotal)) %>% 
+  ungroup
+
+data <- data%>%
+  mutate(percol_w = popweight * percollege) %>% 
+  mutate(popden_w = popweight * popdensity)
+  
+
+#  Group by state and then sum the weighted columns.  The sum of the weighted columns can then be plotted
+data <- data %>%
+  group_by(state) %>%
+  mutate(col = sum(percol_w))%>%
+  mutate(pop = sum(popden_w))%>%
+  mutate(poptot = sum(poptotal))%>%
+  ungroup()
+
+
+data %>% 
+  group_by(state)  %>% 
+  ggplot(aes(x = col, 
+           y = log(pop), 
+           colour = state,
+           label = state))+
+  geom_point(aes(size = poptot))+
+  geom_label_repel()
+
+
+election <- read.csv("https://bit.ly/2yr0OZn")
+
+election %>% 
+  mutate(percent_tory)
+
 
