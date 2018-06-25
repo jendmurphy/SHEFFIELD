@@ -212,4 +212,85 @@ pokemon %>%
   geom_bar(position = "dodge")+
   coord_flip()
 
+# AFTER LUNCH
+# AN EXAMPLE OF FACETING
+
+ggplot(tarantino_2, aes(x = reorder(word,howmany),howmany))+
+  geom_col()+
+  coord_flip()+
+  facet_wrap(~ movie, scales = "free")  #  ~ is needed, even it it is only one variable for faceting
+
+# Note "free_y" and "free_x" would specify a free axis on y or x respectively
+
+install.packages("gapminder")
+library(gapminder)
+
+# gapminder is a project started by Hans Rosling, swedish statistician.  
+# gapminder data in R is not extensive
+
+gap <- gapminder
+
+ggplot(gapminder, aes(gdpPercap,
+                      lifeExp))+
+  geom_point()
+
+#We need to use a log scale to plot because the data are skew
+gap %>% 
+  mutate(log_gdppercap = log(gdpPercap)) %>% 
+  ggplot(aes(log_gdppercap, lifeExp))+
+  geom_point()
+
+#  Alternatively this can be done inline within ggplot.
+ggplot(gap, aes(log(gdpPercap), lifeExp))+
+  geom_point()+
+  geom_smooth(method = "lm") #  This adds a regression fit line.
+
+#  Finally we can use the scale command
+ggplot(gap, aes(gdpPercap, 
+                lifeExp,
+                size = pop,
+                colour = continent))+ # Size the points by population
+  geom_point(alpha = 0.3)+ #  This makes the points TRANSPARENT
+  geom_smooth(method = "lm")+ #  This adds a regression fit line.
+  scale_x_log10() # This plots on a log scale
+
+
+#  Finally we can facet the map by continent
+ggplot(gap, aes(gdpPercap, 
+                lifeExp,
+                size = pop, colour = continent))+ # Size the points by population
+  geom_point(alpha = 0.3)+ #  This makes the points TRANSPARENT
+  geom_smooth(method = "lm")+ #  This adds a regression fit line.
+  scale_x_log10()+
+  facet_wrap(~ continent, scales = "free") 
+
+#  Summarising and plotting
+gapminder %>% group_by(continent, year) %>% 
+  summarise (log_gdp_per_cap_sum = sum(log(gdpPercap)),
+             life_exp_sum = sum(lifeExp),
+             pop_sum = sum(as.numeric(pop)),
+             n_countries = n()) %>% 
+  mutate(mean_log_gdp_per_cap = log_gdp_per_cap_sum/n_countries,
+         mean_life_exp = life_exp_sum/n_countries,
+         mean_pop = pop_sum/n_countries) %>% 
+  ggplot(aes(mean_log_gdp_per_cap, mean_life_exp, label = year, colour = continent, size = mean_pop))+
+  geom_point()
+
+install.packages("ggrepel")
+library(ggrepel)
+
+#  Summarising and plotting
+gapminder %>% group_by(continent, year) %>% 
+  summarise (log_gdp_per_cap_sum = sum(log(gdpPercap)),
+             life_exp_sum = sum(lifeExp),
+             pop_sum = sum(as.numeric(pop)),
+             n_countries = n()) %>% 
+  mutate(mean_log_gdp_per_cap = log_gdp_per_cap_sum/n_countries,
+         mean_life_exp = life_exp_sum/n_countries,
+         mean_pop = pop_sum/n_countries) %>% 
+  ggplot(aes(mean_log_gdp_per_cap, mean_life_exp, label = year, colour = continent))+
+  geom_point(aes(size = mean_pop))+ #  Moving the aesthetic command into the geom point stops the labels being sized by population
+  geom_label_repel()
+
+
 
