@@ -41,7 +41,7 @@ registerDoParallel(cl)
 # load the dataset and define the training and test sets
 load("SPData2.Rda")
 
-# Divide the data into a traing and a test set
+# Divide the data into a training and a test set
 
 
 

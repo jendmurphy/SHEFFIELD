@@ -22,7 +22,7 @@ install.packages(c("e1071",
 #################################################
 
 ### Set the working directory
-setwd('~/PostDoc Sheffield/Teaching/ML workshop/SVM')
+#setwd('~/PostDoc Sheffield/Teaching/ML workshop/SVM')
 
 ### Load libraries
 library(e1071)    # To run SVMs
@@ -168,15 +168,22 @@ svmfit.100 = svm(y~., data = dat2, kernel = "linear",
 svmfit.01 = svm(y~., data = dat2, kernel = "linear", 
                cost = 0.1, scale = FALSE) 
 
+svmfit.50 = svm(y~., data = dat2, kernel = "linear", 
+                 cost = 50, scale = FALSE) 
+
+
 # Generate the plots for the new SV classifiers and put them  
 # side-by-side 
-par(mfrow=c(1,2))    
+par(mfrow=c(1,3))    
 # First plot
 plot_SVM(dat2, svmfit.01, 49)
 title(main = "cost = 0.1 (i.e. C = 10)")
 # Second plot
 plot_SVM(dat2, svmfit.100, 49)
 title(main = "cost = 100 (i.e. C = 0.01)")
+# Third plot
+plot_SVM(dat2, svmfit.50, 49)
+title(main = "cost = 0.5 (i.e. C = 50)")
 par(mfrow=c(1,1))
 
 ###########################################################
