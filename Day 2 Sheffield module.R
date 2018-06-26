@@ -56,3 +56,67 @@ cuts
 '''
 KMEANS CLUSTERING
 '''
+
+'''
+SIMPLE LINEAR REGRESSION SECTION
+'''
+#  Script at https://raw.githubusercontent.com/striatum/smi610/master/src/simple_lin_regression.r
+#  Notebook at 
+# caTools is used in machine learning
+# quietly = True suppresses annoying messages
+# warn.conflicts = FALSE suppresses error messages
+# require is a SYNONYM for library
+require(caTools, quietly=TRUE, warn.conflicts=FALSE)
+
+# read in data
+# = is a synonm for <-
+salary = read.csv('https://raw.github.com/striatum/smi610/master/data/salary_data.csv')
+
+#  checkthe data out
+head(salary)
+
+# whats the structure of the dataframe?
+str(salary)
+
+set.seed(1234) # define a number for pseudo-random number generator
+
+#  This splits the data into train and test
+split = sample.split(salary$Salary, SplitRatio=2/3)
+training_set = subset(salary, split == TRUE)
+test_set = subset(salary, split == FALSE)
+
+# FEATURE SCALING
+# training_set = scale(training_set)
+# test_set = scale(test_set)
+
+#lm1 is a linear model - Salary is the outcome variable, YearsExperience is 
+summary(lm1 <- lm(Salary ~
+                    YearsExperience,
+                  data=salary))
+
+lm1 <- lm(Salary ~
+            YearsExperience,
+          data=training_set)
+
+y_pred = predict(lm1, newdata=test_set)
+
+require(ggplot2, quietly=TRUE, warn.conflicts=FALSE)
+require(gridExtra, quietly=TRUE, warn.conflicts=FALSE)
+
+p1 <- ggplot() +
+  geom_point(data=training_set, aes(x=YearsExperience, y=Salary), colour='red') +
+  geom_line(data=training_set, aes(x=YearsExperience, y=predict(lm1, newdata=training_set)), colour='blue') +
+  ggtitle('Salary vs Experience (Training set)') +
+  xlab('Years of experience') +
+  ylab('Salary')
+
+p2 <- ggplot() +
+  geom_point(data=test_set, aes(x=YearsExperience, y=Salary), colour='red') +
+  geom_line(data=training_set, aes(x=YearsExperience, y=predict(lm1, newdata=training_set)), colour='blue') +
+  ggtitle('Salary vs Experience (Test set)') +
+  xlab('Years of experience') +
+  ylab('Salary')
+
+grid.arrange(p1, p2, ncol=2)
+
+cor.test(y_pred, test_set$Salary)
