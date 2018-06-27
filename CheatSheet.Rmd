@@ -1,0 +1,142 @@
+---
+title: "RandomForest Cheatsheet"
+output: html_notebook
+author: "Christian Adam"
+---
+
+Install (remove hashtags) and load relevant libraries
+
+```{r, message=FALSE}
+# install.packages(c("randomForest",
+#                    "digest",
+#                    "tree",
+#                    "missForest",
+#                    "devtools",
+#                    "caTools",
+#                    "coin",
+#                    "partykit",
+#                    "ROCR"))
+
+
+# library(devtools)
+# install_github('araastat/reprtree')
+
+require(randomForest)
+require(missForest)
+require(partykit)
+require(coin)
+require(ROCR)
+require(reprtree)
+```
+
+
+Load data, filter Value column for missing values and take a look
+
+```{r}
+reviews = read.csv("https://raw.githubusercontent.com/kuchenrolle/MIWorkshop/master/reviews.csv", sep="\t", quote="", comment.char="")
+# reviews = read.table("reviews.csv", header=TRUE, sep="\t", quote="", comment.char = "")
+reviews = reviews[!reviews$Value == "",]
+reviews = droplevels(reviews[!is.na(reviews$Value),])
+print(str(reviews))
+head(reviews)
+```
+
+
+Filter out data points with Price, Points or Country not specified and split into training and test set
+
+```{r, message=FALSE}
+subset = reviews[complete.cases(reviews[,c("Price", "Points", "Country")]),]
+train_indices = sample(1:nrow(subset), 3000)
+train = subset[train_indices,]
+test = subset[-train_indices,]
+```
+
+
+Build a decision tree on training set predicting Value from Year, Type and Points up to depth 4 and plot
+
+```{r}
+tree = partykit:::ctree(Value ~ Year + Type + Points,
+                        data=train,
+                        control = ctree_control(maxdepth = 4))
+plot(tree)
+```
+
+
+Get accuracy on training and test set
+
+```{r}
+train_acc = mean(train$Value == predict(tree, train))
+test_acc = mean(test$Value == predict(tree, test))
+train_acc
+test_acc
+```
+
+
+Train Random Forest (on subset from before)
+
+```{r, message=FALSE}
+forest = randomForest::randomForest(Value ~ Price + Points + Country,
+                                    data=subset,
+                                    ntree=500,
+                                    importance=TRUE)
+
+mean(subset$Value == predict(forest))
+```
+
+
+Inspect confusion matrix
+
+```{r}
+confusion_matrix = table(subset$Value, predict(forest))
+confusion_matrix
+```
+
+
+Plot fifth tree from forest up to depth 4
+
+```{r}
+reprtree:::plot.getTree(forest, k=10, depth=4)
+```
+
+
+Check variable importances
+
+```{r}
+varImpPlot(forest)
+```
+
+
+Plot how much predicting class 1 (bad value) depends on points
+
+```{r}
+partialPlot(forest, subset, x.var = Points, which.class = 1)
+```
+
+
+Plot distribution of value judgements without data points where price and points are unknown to distribution for data points where price is unknown
+
+```{r}
+par(mfrow=c(2,1))
+plot(reviews$Value[!is.na(reviews$Price) & !is.na(reviews$Points)])
+plot(reviews$Value[is.na(reviews$Price)])
+```
+
+
+Impute missing values for Price, Year and Country with missForest
+
+```{r}
+imputed = missForest::missForest(reviews[,c("Price","Points","Country")])
+
+reviews_imputed = reviews
+reviews_imputed$Price = imputed$ximp$Price
+reviews_imputed$Points = imputed$ximp$Points
+reviews_imputed$Country = imputed$ximp$Country
+```
+
+
+Train forest on data with imputed values and get accuracy
+
+```{r}
+forest_imputed = randomForest(Value ~ Price + Points + Country, data=reviews_imputed, ntree=500)
+mean(reviews_imputed$Value == predict(forest_imputed))
+```
