@@ -232,6 +232,7 @@ getSources()
 
 trumpCorpus <- Corpus(DirSource(dirname, encoding="UTF-8"))
 
+#  Alternative if the dirname hasnt been defined as an object
 # trumpCorpus <-Corpus(DirSource("./texts", encoding="UTF-8")) 
 
 str(trumpCorpus)
@@ -254,11 +255,14 @@ if (packageVersion("devtools") < 1.6) {
 devtools::install_github("bradleyboehmke/harrypotter")
 library(harrypotter)
 
-# harrypotter::chamber_of_secrets
-
+harrypotter::chamber_of_secrets
+#  Source here is a vector - each element of the corpus is a chapter here.
 book <- Corpus(VectorSource(philosophers_stone))
 book[[1]]$meta
 book[[1]]$content
+
+summary(book)
+
 
 ######################################################
 # transform and preprocess text
@@ -298,6 +302,8 @@ inspect(trumpDTMS[1:2, 1:5])
 
 inspect(trumpDTM[, c("news", "fake", "america", "great")])
 
+inspect(trumpDTM[, c("god")])
+
 trumpFreqTerms <- findFreqTerms(trumpDTM, lowfreq=50)
 trumpFreqTerms
 
@@ -316,7 +322,7 @@ arrange(trumpFreqTermsDF, desc(freq))
 
 ggplot(subset(trumpFreqTermsDF, freq>50), aes(x = reorder(word, -freq), y = freq)) +
   geom_bar(stat = "identity") + 
-  theme(axis.text.x=element_text(angle=45, hjust=1))
+  theme(axis.text.x=element_text(angle=90, hjust=1))
 
 # create a wordcloud to visualise frequent terms
 install.packages("wordcloud")
@@ -356,6 +362,10 @@ wordcloud(df$word, df$freq, min.freq=4)
 ######################################################
 # Show occurrences of particular word in documents
 ######################################################
+install.packages("tidyr")
+require(tidyr)
+require(tidytext)
+require(tidyverse)
 
 df_trump <- tidy(trumpDTM)
 
@@ -370,18 +380,27 @@ df_trump %>%
 
 
 # find word associations
-findAssocs(trumpDTM, "clinton", corlimit = 0.6)
+require(tm)
+findAssocs(trumpDTM, "clinton", corlimit = 0.9)
 
 # demonstrate hierarchical clustering
 install.packages("proxy")
 library(proxy)
 
+#  Remove sparse terms.  Set up as a matrix
 sparsetrumpDTM <- removeSparseTerms(trumpDTM, sparse=0.95)
 mat <- as.matrix(sparsetrumpDTM)
+
+# dist() computes a distance matrix
 docsdissim <- dist(scale(mat))
 
+#  run clustering analysis on the resultant disimilarity 
 h <- hclust(docsdissim, method = "ward.D")
 plot(h, cex=0.8, hang=0.1)
+
+h2<- hclust(docsdissim, method = "complete")
+plot(h2, cex=0.8, hang=0.1)
+
 
 # demonstrate clustering using k-means
 install.packages("fpc")
@@ -424,9 +443,12 @@ library(stringr)
 View(austen_books())
 austen_books()
 
-austen_books() %>% 
+summary<-austen_books() %>% 
   group_by(book) %>%
-  summarise(total_lines = n())
+  summarise(total_lines = n()) %>% #total_lines is the name of the variable created
+  ungroup()  
+
+summary
 
 austenTidyBooks <- austen_books() %>% 
   unnest_tokens(word, text) 
@@ -473,11 +495,25 @@ trumpDTM <- DocumentTermMatrix(trumpCorpus)
 tidyTrumpTDM <- tidy(trumpDTM)
 tidyTrumpTDM
 
+############
+#OTHERSTUFF#
+############
+
+inspect(trumpDTM)
+df_trumpDTM <- data.frame(trumpDTM)
+
+df<- stack()
+DF <- data.frame(as.matrix(trumpDTM), stringsAsFactors=FALSE)
+
 ######################################################
 # Computing word frequencies
 ######################################################
 
 austenTidyBooks %>%
+  count(word, sort=TRUE)
+
+austenTidyBooks %>%
+  group_by(book) %>% 
   count(word, sort=TRUE)
 
 austenTidyBooks %>%
@@ -514,9 +550,9 @@ austenTidyBooks %>%
   count(word, sort = TRUE) 
 
 austenTidyBooks %>%
-  count(book, word, sort=TRUE) %>%
+  count(book, word, sort=TRUE)
   
-  austenTidyBooks %>%
+austenTidyBooks %>%
   group_by(book) %>%
   count(word, sort=TRUE)
 
@@ -661,7 +697,10 @@ kjv_bigrams %>%
          !str_detect(word2, "\\d")) %>%
   visualize_bigrams()
 
-
+install.packages("ggraph")
+install.packages("igraph")
+library(igraph)
+library(ggraph)
 expectations <- gutenberg_download(1400)
 
 expectations_bigrams <- expectations %>%
@@ -731,7 +770,7 @@ library(reshape2)
 #library(dplyr)
 #library(tidyverse)
 #library(tidytext)
-#library(wordcloud)
+library(wordcloud)
 
 austenTidyBooks %>%
   inner_join(get_sentiments("bing")) %>%
@@ -740,16 +779,10 @@ austenTidyBooks %>%
   comparison.cloud(colors = c("#F8766D", "#00BFC4"), max.words = 100)
 
 tidyTrumpTxt %>%
-  inner_join(nrc, by = "word") %>%
-  count(id, sentiment, word) %>%
-  ungroup() %>%
-  group_by(sentiment) %>%
-  summarize(words = sum(n))
-
-
-tidyTrumpTxt %>%
-  inner_join(get_sentiments("bing"))
-
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>% 
+  comparison.cloud(colors = c("#F8766D", "#00BFC4"), max.words = 100)
 
 # Syuzhet package example
 
@@ -805,6 +838,8 @@ series$book <- factor(series$book, levels = rev(titles))
 book_words <- series %>%
   count(book, word, sort = TRUE) %>%
   ungroup()
+
+book_words
 
 series_words <- book_words %>%
   group_by(book) %>%
