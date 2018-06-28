@@ -138,7 +138,7 @@ summary(V(inet1)$gender)
 summary(inet1)
 
 #Adding a weight for strength of friendship
-E(inet1)$strength <- c(3,3,1,2,2,1,4)
+E(inet1)$strength <- c(3,3,1,2,2,1,4) # add weights rowise.  igraph knows to only add weights to existing ties.
 #Looking at the strength covariate
 summary(E(inet1)$strength)
 summary(inet1)
