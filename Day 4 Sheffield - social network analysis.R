@@ -32,14 +32,14 @@ size.dir.X <- sum(X)
 dens.X <- sum(X)/(nrow(X)*(nrow(X)-1))
 
 # Reciprocity
-X.Xt <- X*t(X)
-X.recip <- sum(X.Xt ==1)/2
-X.notrecip <- sum(X-X.Xt)
-X.reciprocity <- X.notrecip/(X.notrecip + X.recip)
+X.Xt <- X*t(X)  #  multiply matrix by its transpose to give matrix of reciprocated ties
+X.recip <- sum(X.Xt)/2 # this is effectively an undirected network as all ties are reciprocated
+X.notrecip <- sum(X-X.Xt) #  taking the difference
+X.reciprocity <- X.notrecip/(X.notrecip + X.recip) # working out the ratio
 
 # In degree and out degree
-X.in <-colSums(X)
-X.out <-rowSums(X)
+X.in <-colSums(X) # sum of the columns.  View this, gives the in degree for each actor
+X.out <-rowSums(X) # sum of the rows.  View this, gives the out degree for each actor
 
 # View in and out
 X.in
@@ -50,10 +50,10 @@ X.out
 #################################################
 
 
-
-
-#Reading in lists of edges
-friend.edges<- rbind(c("Ahmed","Sofia"),
+# Each edge is a pair of nodes
+# Reading in lists of edges
+# this is computationally efficient for large networks as it doesnt store any zeros.
+friend.edges<- rbind(c("Ahmed","Sofia"),  #  rbind takes the list of lists and puts them into rows
                      c("Sofia","Ahmed"),
                      c("Berthold","Ahmed"),
                      c("Berthold","Sofia"),
@@ -64,35 +64,41 @@ friend.edges<-data.frame(friend.edges)
 
 #Creating a network object from a sociomatrix
 library(statnet)
-sociomatrix<-matrix(c(0,1,0,0,1,0,0,0,1,1,0,1,0,1,1,0),4,4,T)
-rownames(sociomatrix)<-colnames(sociomatrix)<-c("Ahmed","Sofia","Berthold","Carlo")
-net1<-network(sociomatrix,matrix.type="adjacency")
+# Turn the matrix X into a network object for statnet
+net1<-network(X,matrix.type="adjacency")
 
 #Check summary of object
+#assumes it is a directed matrix
 summary(net1)
 
 #Creating a network object from an edge list
 net1.1<-network(friend.edges, matrix.type="edgelist")
+#  This gives the same information as reading in X, just done from an edge list rather than an adjacency matrix.
+#  Reading in an edge list might be easier, can still be converted into a network quite simply
 summary(net1.1)
 
 #Adding/changing node names
-#network.vertex.names(net1)<-c("Ahmed","Sofia","Berthold","Carlo")
+network.vertex.names(net1)<-c("Ahmed","Sofia","Berthold","Carlo")
+
 
 #Getting an edge list from a network object
 as.sociomatrix(net1)
 as.matrix(net1, matrix.type="edgelist")
 
 #Adding vertex information
-set.vertex.attribute(net1, "gender",c("M","F","M","M"))
-list.vertex.attributes(net1)
-summary(net1)
+set.vertex.attribute(net1, "gender",c("M","F","M","M")) # may need to specify that this command comes from network package because R is a bit confused
+list.vertex.attributes(net1)  # may need to specify that this command comes from network package because R is a bit confused
+summary(net1) # Now this lists out the 
 
+require(network)
 #Getting vertex information
 get.vertex.attribute(net1,"gender")
 get.vertex.attribute(net1,"vertex.names")
 net1 %v% "gender"
 
-#Adding edge covariate
+#  Adding edge covariate
+#  This is weighting the ties in the matrix
+#  The weight is a separate matrix
 w.mat<-matrix(c(0,3,0,0,2,0,0,0,1,1,0,3,0,2,4,0),4,4,T)
 set.edge.value(net1,"weight",w.mat)
 
@@ -102,6 +108,10 @@ get.edge.value(net1,"weight")
 as.sociomatrix(net1,"weight")
 
 summary(net1)
+
+############################################################################################
+#NOW LOOKING AT IGRAPH - NEED TO UNLIBRARY THE STATNET PACKAGES SO THAT IGRAPH CAN BE USED #
+############################################################################################
 
 #Detach statnet packages and load igraph
 detach("package:statnet",unload=TRUE)
@@ -113,9 +123,11 @@ detach("package:networkDynamic", unload=TRUE)
 detach("package:network", unload=T)
 
 library(igraph)
-#Create an igraph object from the sociomatrix
+# Create an igraph object from the sociomatrix
+# Putting i in front of the objects to distinguish between statnet and igraph objects
 inet1<-graph_from_adjacency_matrix(sociomatrix)
-summary(inet1)
+summary(inet1) # gives some information but in a condensed format.
+
 
 #Create an igraph object from the edges list
 inet1.1<-graph_from_edgelist(as.matrix(friend.edges),directed = T)
