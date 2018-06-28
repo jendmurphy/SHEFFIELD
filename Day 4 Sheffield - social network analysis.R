@@ -221,6 +221,10 @@ sum(data)/2
 degree<- degree(datanet)
 summary(degree)
 
+############################################################################################################################################################
+#  LAB 2 SCRIPT STARTS HERE                                                                                                                                #
+############################################################################################################################################################
+
 ################################
 # Onto plotting network data   #
 ################################
@@ -229,9 +233,17 @@ summary(degree)
 sociomatrix<-matrix(c(0,1,0,0,0,1,0,0,0,0,1,1,0,1,0,0,1,1,0,0,0,0,0,1,0),5,5,T)
 rownames(sociomatrix)<-colnames(sociomatrix)<-c("Ahmed","Sofia","Berthold","Carlo","Niamh")
 net3<-network(sociomatrix,matrix.type="adjacency")
+
+#Plot this new network  
 plot(net3,vertex.col=c(4,2,4,4,2),vertex.cex=3,label=network.vertex.names(net3),arrowhead.cex=3,edge.lwd=2)
 
-plot(net3,vertex.col=c(4,2,4,4,2),vertex.cex=3,label=network.vertex.names(net3),arrowhead.cex=3,edge.lwd=2,mode="circle")
+#  this makes the network plot in a circle.  Note the length of the ties is meaningless
+plot(net3,vertex.col=c(4,2,4,4,2), # here the nodes are coloured by the list, this could be set to an attribute
+     vertex.cex=3,
+     label=network.vertex.names(net3),
+     arrowhead.cex=3, # specifying the arrowhead size
+     edge.lwd=2, # weight of the edge.  Can specify a vector here to weight the edges by.
+     mode="circle")
 
 #Similar to before but using gplot command instead
 gplot(net3,vertex.col=c(4,2,4,4,2),vertex.cex=3,label=network.vertex.names(net3),arrowhead.cex=1.5,edge.lwd=2, mode="spring")
@@ -247,6 +259,10 @@ coord<-tkplot(inet3, vertex.size=3, vertex.label=c(4,2,4,4,2))
 MCoords <- tkplot.getcoords(coord)
 plot(inet3, layout=MCoords, vertex.size=5, vertex.label=NA, vertex.color="lightblue")
 
+###################################################################
+# 5 NETWORK SUMMARY STATISTICS                                    #
+###################################################################
+
 #Graph summaries
 #Density
 network.density(net3)
@@ -255,9 +271,11 @@ network.density(net3)
 grecip(net3, measure = "dyadic.nonnull")
 grecip(net3, measure = "edgewise")
 
+# A component is a set of connected nodes
 #Number of connected components
 components(net3,connected="strong")
 components(net3,connected="weak")
+
 
 #Diameter
 #For the directed graph
