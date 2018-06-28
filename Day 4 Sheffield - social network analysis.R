@@ -154,10 +154,12 @@ class(net1.2)
 summary(inet1.2)
 summary(net1.2)
 
-#Getting a subgraph using node characteristics
+#  Getting a subgraph using node characteristics
+#  Can take as many subgraphs as you want to
 library(statnet)
-netM<-get.inducedSubgraph(net1,which(net1 %v% "gender" == "M"))
+netM<-get.inducedSubgraph(net1,which(net1 %v% "gender" == "M")) # This is picking out the network just of men
 summary(netM)
+
 
 #Getting a subgraph using edge characteristics
 #Summarising number of edges having each covariate value
@@ -182,10 +184,41 @@ net.copy <- net.new
 delete.vertices(net.copy,isolates(net.copy))
 summary(net.copy)
 
-#Change directed matrix to undirected matrix
-net.symm.weak<-symmetrize(net1,rule="weak")
-net.symm.strong<-symmetrize(net1,rule="strong")
+#Change directed matrix to undirected matrix - this is making the network symmetric. 
+net.symm.weak<-symmetrize(net1,rule="weak") # we can make a 10 -> 11  so even a weak tie becomes a full tie
+net.symm.strong<-symmetrize(net1,rule="strong") # only includes reciprocated ties, all (1,0) ties become (0,0)
+
+summary(net.symm.strong)
+summary(net.symm.weak)
 
 #Read in antibiotic data
 #setwd("~/Desktop/NetworkCMU") set this to the directory the data file is in
+
+##############################
+#ANTIBIOTICS NETWORK TASK    #
+##############################
 data<-read.table("ckm_network.dat.txt")
+
+# default is undirected so make sure you definitely specify false within the converison to a network object
+datanet <- network(data,matrix.type="adjacency", directed = FALSE)
+summary(datanet, print.adj=F) #print.adj = F stops it printing out the adjacency matrix as part of the summary
+
+isolates(datanet)
+
+degree(datanet)
+?degree
+ 
+# Plot a histogram of degree
+hist(degree(datanet))
+# Plot the network
+plot(datanet)
+
+#Number of ties
+sum(data)/2
+
+# Store degree data as an object
+# Allows summary statistics
+degree<- degree(datanet)
+summary(degree)
+
+
