@@ -1,0 +1,5 @@
+install.packages(c("statnet","igraph","intergraph","blockmodels"))
+require(statnet)
+require(igraph)
+require(intergraph)
+require(blockmodels)
