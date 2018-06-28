@@ -276,8 +276,7 @@ grecip(net3, measure = "edgewise")
 components(net3,connected="strong")
 components(net3,connected="weak")
 
-
-#Diameter
+#Diameter - spread of connections?  Shortest number of edges from one node to the next is the geodistance, then diameter is the longest of these measurements.
 #For the directed graph
 max(geodist(net3)$gdist)
 #For a symmetrized version of the directed graph, i.e. undirected
@@ -310,7 +309,7 @@ anti.inet<-asIgraph(anti.net)
 #anti.inet<-graph_from_adjacency_matrix(as.matrix(data))
 
 cw<-cluster_walktrap(anti.inet) 
-head(membership(cw))
+head(membership(cw)) #  membership is a vector that could be used as a categorical variable
 table(membership(cw))
 modularity(cw)
 plot(cw, anti.inet)
@@ -319,6 +318,9 @@ cb<-cluster_edge_betweenness(anti.inet)
 table(membership(cb))
 modularity(cb)
 
+#  This is a measure of how the communities detected in the different clustering methods are similar
+# 1 means that exactly the same communities have been detected
+# 0-1  range
 chisq.test(table(membership(cw),membership(cb)))
 compare(cw,cb,method="adjusted.rand")
 
@@ -326,11 +328,11 @@ compare(cw,cb,method="adjusted.rand")
 #Reminding ourselves of the node names in the net3 network
 net3 %v% "vertex.names"
 #Indegree
-degree(net3,cmode="indegree")
+degree(net3,cmode="indegree") #in ties
 #Outdegree
-degree(net3,cmode="outdegree")
+degree(net3,cmode="outdegree") # out ties
 #Total degree
-degree(net3,cmode="freeman")
+degree(net3,cmode="freeman") #any ties
 
 #Closeness centrality
 closeness(net3,gmode="graph")
